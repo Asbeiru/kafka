@@ -108,10 +108,23 @@ public class NetworkReceive {
         return size;
     }
 
+    /**
+     * Release the memory back to the pool.
+     *
+     * IMPORTANT: This method only releases memory back to the pool, it does NOT set
+     * payloadBuffer to null. This is because other parts of the system (Handler) may
+     * still need to read from this buffer after the NetworkReceive is detached from
+     * the channel.
+     *
+     * This aligns with Kafka's memory management where MemoryPool.release() only
+     * updates accounting but doesn't modify the ByteBuffer itself, allowing the
+     * buffer to be read even after being "released" to the pool.
+     */
     public void close() {
         if (payloadBuffer != null) {
             memoryPool.release(payloadBuffer);
-            payloadBuffer = null;
+            // DON'T set payloadBuffer to null - other components may still need to read it
+            // The ByteBuffer remains valid and readable after release
         }
     }
 }

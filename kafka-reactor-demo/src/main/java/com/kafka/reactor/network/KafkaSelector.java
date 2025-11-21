@@ -93,22 +93,25 @@ public class KafkaSelector {
 
     /**
      * Read from a channel.
+     * Aligns with Kafka's Selector.read() (Selector.java:485-505)
      */
     private void read(KafkaChannel channel) throws IOException {
-        long bytesRead = channel.read();
+        String nodeId = channel.id();
+        long bytesReceived = channel.read();
 
-        if (bytesRead < 0) {
+        if (bytesReceived < 0) {
             // Connection closed by remote
-            log.info("Connection closed by remote: {}", channel.id());
+            log.info("Connection closed by remote: {}", nodeId);
             close(channel);
-            disconnected.add(channel.id());
-        } else if (channel.currentReceive() != null && channel.currentReceive().complete()) {
-            // Receive completed
-            NetworkReceive receive = channel.currentReceive();
-            completedReceives.add(receive);
-            channel.clearReceive();
+            disconnected.add(nodeId);
+        } else {
+            // Get completed receive if any
+            NetworkReceive receive = channel.maybeCompleteReceive();
 
-            log.debug("Completed receive from {}: {} bytes", channel.id(), receive.size());
+            if (receive != null) {
+                completedReceives.add(receive);
+                log.debug("Completed receive from {}: {} bytes", nodeId, receive.size());
+            }
         }
     }
 

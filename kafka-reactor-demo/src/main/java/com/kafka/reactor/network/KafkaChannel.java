@@ -132,6 +132,25 @@ public class KafkaChannel {
         return receive;
     }
 
+    /**
+     * Returns the receive that has been completed, or null if the receive has not been completed.
+     * The receive is only cleared from the channel once this method is invoked.
+     *
+     * IMPORTANT: Unlike clearReceive(), this method does NOT close the receive or release its memory.
+     * The receive will be used by Processor to create a Request and passed to Handler.
+     * Memory will be released later when the request is fully processed.
+     *
+     * Aligns with Kafka's KafkaChannel.maybeCompleteReceive() (KafkaChannel.java:258-265)
+     */
+    public NetworkReceive maybeCompleteReceive() {
+        if (receive != null && receive.complete()) {
+            NetworkReceive result = receive;
+            receive = null;  // Clear from channel but DON'T close it
+            return result;
+        }
+        return null;
+    }
+
     public NetworkSend currentSend() {
         return send;
     }
