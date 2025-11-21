@@ -114,17 +114,19 @@ public class KafkaSelector {
 
     /**
      * Write to a channel.
+     * Aligns with Kafka's Selector.write() (Selector.java:445-458)
      */
     private void write(KafkaChannel channel) throws IOException {
-        long bytesWritten = channel.write();
+        String nodeId = channel.id();
+        long bytesSent = channel.write();
 
-        if (channel.currentSend() != null && channel.currentSend().completed()) {
-            // Send completed
-            NetworkSend send = channel.currentSend();
+        // Get completed send if any
+        NetworkSend send = channel.maybeCompleteSend();
+
+        // We may complete the send with bytesSent < 1 if `TransportLayer.hasPendingWrites` was true
+        if (send != null) {
             completedSends.add(send);
-            channel.clearSend();
-
-            log.debug("Completed send to {}: {} bytes", channel.id(), send.size());
+            log.debug("Completed send to {}: {} bytes", nodeId, send.size());
         }
     }
 

@@ -136,6 +136,35 @@ public class KafkaChannel {
         return send;
     }
 
+    /**
+     * Returns true if there is a send in progress.
+     */
+    public boolean hasSend() {
+        return send != null;
+    }
+
+    /**
+     * Returns the send that has been completed, or null if the send has not been completed.
+     * The send is only cleared from the channel once this method is invoked.
+     *
+     * Aligns with Kafka's KafkaChannel.maybeCompleteSend() (KafkaChannel.java:245-253)
+     */
+    public NetworkSend maybeCompleteSend() {
+        if (send != null && send.completed()) {
+            NetworkSend result = send;
+            send = null;  // Clear the send
+
+            // Remove OP_WRITE interest
+            SelectionKey key = selectionKey();
+            if (key != null && key.isValid()) {
+                key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+            }
+
+            return result;
+        }
+        return null;
+    }
+
     public boolean hasBytesBuffered() {
         return transportLayer.hasPendingWrites();
     }
@@ -147,9 +176,12 @@ public class KafkaChannel {
         }
     }
 
-    public void clearSend() {
+    /**
+     * Clear the send and remove OP_WRITE interest.
+     * This method is used during channel close.
+     */
+    private void clearSend() {
         send = null;
-        // Remove OP_WRITE interest when send is complete
         SelectionKey key = selectionKey();
         if (key != null && key.isValid()) {
             key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
