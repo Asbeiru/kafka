@@ -142,17 +142,39 @@
 
 ---
 
-## ⬜ 阶段2：核心接口定义 (待实施)
+## 🔄 阶段2：核心接口定义 (进行中)
 
 **预计时间：** 1-2天
+**实际时间：** 2小时（进行中）
 **核心接口数量：** 6个
-**状态：** 未开始
+**状态：** 2/6 已完成
 
-### 计划创建的文件
+### 已创建的文件
 
-1. **RaftClient.java** - 核心客户端接口（~15个方法）
-2. **EpochState.java** - Epoch状态接口（~7个方法）
-3. **ReplicatedLog.java** - 复制日志接口（~12个方法）
+#### 1. RaftClient.java ✅
+- **路径：** `/root/kraft-learning/kraft-raft/src/main/java/org/apache/kafka/raft/RaftClient.java`
+- **方法数：** 15个核心方法 + 内部Listener接口（3个方法）
+- **行数：** ~900行（包含详细中文注释）
+- **说明：** KRaft最核心的客户端接口，定义了所有与Raft交互的操作
+- **关键概念：**
+  - 两阶段写入：prepareAppend() + schedulePreparedAppend()
+  - 事件驱动：Listener接口（handleCommit, handleLoadSnapshot, handleLeaderChange）
+  - 生命周期管理：shutdown(), resign(), close()
+  - 快照管理：createSnapshot(), latestSnapshotId()
+
+#### 2. EpochState.java ✅
+- **路径：** `/root/kraft-learning/kraft-raft/src/main/java/org/apache/kafka/raft/RaftClient.java`
+- **方法数：** 7个方法
+- **行数：** ~550行（包含详细中文注释）
+- **说明：** Raft节点在特定epoch中的状态抽象接口
+- **关键概念：**
+  - 状态模式：UnattachedState, VotedState, FollowerState, CandidateState, LeaderState等
+  - Raft投票规则：canGrantVote()
+  - 不可变性：election()和epoch()都是不可变的
+
+### 待实现的文件
+
+3. **ReplicatedLog.java** - 复制日志接口（~12个方法）⏳
 4. **NetworkChannel.java** - 网络通道接口（~5个方法）
 5. **RaftMessage.java** - Raft消息接口（~3个方法）
 6. **BatchReader.java** - 批次读取接口（~4个方法）
