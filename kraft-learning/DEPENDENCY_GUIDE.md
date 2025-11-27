@@ -86,7 +86,7 @@ KRaft的快照机制依赖这些接口。
 
 ```xml
 <properties>
-    <kafka.version>4.0.0-SNAPSHOT</kafka.version>
+    <kafka.version>4.1.1</kafka.version>
 </properties>
 
 <dependencyManagement>
@@ -275,7 +275,7 @@ A: 可以部分独立运行：
 A: 确保kafka.version与/home/user/kafka的Kafka版本一致：
 ```xml
 <properties>
-    <kafka.version>4.0.0-SNAPSHOT</kafka.version>
+    <kafka.version>4.1.1</kafka.version>
 </properties>
 ```
 
