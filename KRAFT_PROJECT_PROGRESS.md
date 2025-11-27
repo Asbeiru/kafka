@@ -2,36 +2,32 @@
 
 **文档用途：** 此文档供 Claude 助手追踪项目进度，快速恢复上下文并继续指导实现。
 
-**最后更新时间：** 2025-11-26 (阶段1已完成)
+**最后更新时间：** 2025-11-27 (阶段2已完成)
 
 ---
 
 ## 📍 当前状态总览
 
 ### 项目阶段
-- **当前阶段：** ✅ 阶段1 - 基础数据结构（已完成）
-- **已完成阶段：** 1/11
-- **已完成类：** 12/84 (14.3%)
-- **预计完成进度：** 3天/35天 (8.6%)
+- **当前阶段：** ✅ 阶段2 - 核心接口定义（已完成）
+- **已完成阶段：** 2/11
+- **已完成类：** 18/84 (21.4%)
+- **预计完成进度：** 4天/35天 (11.4%)
 
 ### 当前任务
 ```
-状态：✅ 阶段1已完成
-当前任务：准备进入阶段2 - 核心接口定义
-已完成阶段1所有12个类：
-  ✅ OffsetAndEpoch
-  ✅ OffsetMetadata
-  ✅ LogOffsetMetadata
-  ✅ LeaderAndEpoch
-  ✅ ValidOffsetAndEpoch
-  ✅ Isolation
-  ✅ ElectionState
-  ✅ Endpoints
-  ✅ ReplicaKey
-  ✅ Batch<T>
-  ✅ LogAppendInfo
-  ✅ LogFetchInfo
-下一步：进入阶段2，实现6个核心接口
+状态：✅ 阶段2已完成
+当前任务：准备进入阶段3 - 配置和存储
+已完成阶段1所有12个类 + 阶段2所有6个接口：
+  ✅ 阶段1：12个基础数据结构
+  ✅ 阶段2：6个核心接口（详细中文注释）
+    - RaftMessage (2方法)
+    - BatchReader<T> (4方法)
+    - NetworkChannel (3方法)
+    - EpochState (7方法)
+    - RaftClient<T> (17方法)
+    - ReplicatedLog (26方法)
+下一步：进入阶段3，实现配置和存储类
 ```
 
 ---
@@ -120,27 +116,79 @@ kraft-learning/
 
 ### 阶段2：核心接口定义（1-2天）
 
-**状态：** ⬜ 未开始
+**状态：** ✅ 已完成
 **预计时间：** 1-2天
+**实际时间：** 约2小时
 **核心接口数量：** 6个
 
 #### 任务清单
 
 | # | 接口名 | 位置 | 核心方法数 | 状态 | 完成日期 |
 |---|--------|------|-----------|------|---------|
-| 2.1 | `RaftClient<T>` | raft | ~15 | ⬜ 未开始 | - |
-| 2.2 | `EpochState` | raft | ~7 | ⬜ 未开始 | - |
-| 2.3 | `ReplicatedLog` | raft | ~12 | ⬜ 未开始 | - |
-| 2.4 | `NetworkChannel` | raft | ~5 | ⬜ 未开始 | - |
-| 2.5 | `RaftMessage` | raft | ~3 | ⬜ 未开始 | - |
-| 2.6 | `BatchReader<T>` | raft | ~4 | ⬜ 未开始 | - |
+| 2.1 | `RaftMessage` | raft | 2 | ✅ 已完成 | 2025-11-27 |
+| 2.2 | `BatchReader<T>` | raft | 4 | ✅ 已完成 | 2025-11-27 |
+| 2.3 | `NetworkChannel` | raft | 3 | ✅ 已完成 | 2025-11-27 |
+| 2.4 | `EpochState` | raft | 7 | ✅ 已完成 | 2025-11-27 |
+| 2.5 | `RaftClient<T>` | raft | 17 | ✅ 已完成 | 2025-11-27 |
+| 2.6 | `ReplicatedLog` | raft | 26 | ✅ 已完成 | 2025-11-27 |
 
 **阶段2完成标准：**
-- [ ] 所有接口方法签名准确
-- [ ] 所有javadoc完整
-- [ ] 接口之间的依赖关系清晰
+- [x] 所有接口方法签名准确 ✅
+- [x] 所有javadoc完整（详细中文注释，包含使用示例）✅
+- [x] 接口之间的依赖关系清晰 ✅
 
-**当前子任务：** 无（阶段未开始）
+**实现亮点：**
+- ✅ 所有接口都添加了详细的中文注释
+- ✅ 每个方法都包含使用场景和示例代码
+- ✅ 注释涵盖了为什么需要这个方法、什么时候调用、返回值含义等
+- ✅ 包含了大量实际使用示例，方便学习理解
+- ✅ ReplicatedLog 接口有完整的默认实现（validateOffsetAndEpoch、truncateToEndOffset）
+
+**完成的接口概览：**
+
+1. **RaftMessage**（最简单）
+   - correlationId(): 获取请求/响应关联ID
+   - data(): 获取实际消息数据
+
+2. **BatchReader<T>**（迭代器模式）
+   - baseOffset(): 起始offset（不变）
+   - lastOffset(): 结束offset（可能未知）
+   - close(): 释放资源
+   - + Iterator<Batch<T>> 方法
+
+3. **NetworkChannel**（网络抽象）
+   - newCorrelationId(): 生成唯一ID
+   - send(): 发送请求
+   - listenerName(): 监听器名称
+
+4. **EpochState**（状态接口）
+   - highWatermark(): 高水位（仅Leader）
+   - canGrantVote(): 投票决策
+   - election(): 选举状态
+   - epoch(): 当前epoch
+   - leaderEndpoints(): Leader地址
+   - name(): 状态名称
+   - close(): 清理资源
+
+5. **RaftClient<T>**（最核心）
+   - register/unregister Listener
+   - highWatermark/leaderAndEpoch/nodeId
+   - prepareAppend/schedulePreparedAppend（两阶段写入）
+   - shutdown/resign
+   - createSnapshot/latestSnapshotId
+   - logEndOffset/kraftVersion/upgradeKRaftVersion
+   + Listener 子接口（handleCommit/handleLoadSnapshot/handleLeaderChange）
+
+6. **ReplicatedLog**（最复杂，26个方法）
+   - 写入：appendAsLeader/appendAsFollower
+   - 读取：read
+   - 元数据：lastFetchedEpoch/endOffsetForEpoch/endOffset/highWatermark/startOffset
+   - 验证：validateOffsetAndEpoch（默认实现）
+   - 日志管理：initializeLeaderEpoch/truncateTo/truncateToLatestSnapshot/truncateToEndOffset
+   - 高水位：updateHighWatermark
+   - 清理：deleteBeforeSnapshot/flush/maybeClean
+   - 快照：createNewSnapshot/createNewSnapshotUnchecked/readSnapshot/latestSnapshot等
+   - 其他：topicPartition/topicId
 
 ---
 
@@ -476,9 +524,9 @@ kraft-learning/
 | 阶段 | 预计天数 | 核心类数 | 状态 | 完成度 |
 |------|---------|---------|------|--------|
 | 阶段1：基础数据结构 | 2-3 | 12 | ✅ 已完成 | 100% |
-| 阶段2：核心接口 | 1-2 | 6 | ⬜ 未开始 | 0% |
-| 阶段3：配置存储 | 2-3 | 3 | ⬜ 未开始 | 0% |
-| 阶段4：网络消息 | 3-4 | 8 | ⬜ 未开始 | 0% |
+| 阶段2：核心接口 | 1-2 | 6 | ✅ 已完成 | 100% |
+| 阶段3：配置存储 | 2-3 | 4 | ⬜ 未开始 | 0% |
+| 阶段4：网络消息 | 3-4 | 9 | ⬜ 未开始 | 0% |
 | 阶段5：批处理 ⭐ | 3-4 | 5 | ⬜ 未开始 | 0% |
 | 阶段6：状态机 ⭐⭐⭐ | 7-10 | 7 | ⬜ 未开始 | 0% |
 | 阶段7：状态管理 | 2-3 | 2 | ⬜ 未开始 | 0% |
@@ -486,14 +534,14 @@ kraft-learning/
 | 阶段9：高级功能 | 2-3 | 6 | ⬜ 未开始 | 0% |
 | 阶段10：快照 | 2-3 | 11 | ⬜ 未开始 | 0% |
 | 阶段11：引擎 ⭐⭐⭐ | 7-10 | 1 | ⬜ 未开始 | 0% |
-| **总计** | **25-35** | **84** | - | **14.3%** |
+| **总计** | **25-35** | **84** | - | **21.4%** |
 
 ### 按类型统计
 
 | 类型 | 数量 | 已完成 | 进行中 | 未开始 |
 |------|------|--------|--------|--------|
 | 基础数据结构 | 12 | 12 | 0 | 0 |
-| 接口定义 | 6 | 0 | 0 | 6 |
+| 接口定义 | 6 | 6 | 0 | 0 |
 | 配置和存储 | 4 | 0 | 0 | 4 |
 | 网络和消息 | 9 | 0 | 0 | 9 |
 | 批处理系统 | 5 | 0 | 0 | 5 |
@@ -503,7 +551,7 @@ kraft-learning/
 | 高级功能 | 6 | 0 | 0 | 6 |
 | 快照管理 | 11 | 0 | 0 | 11 |
 | 核心引擎 | 1 | 0 | 0 | 1 |
-| **总计** | **84** | **12** | **0** | **72** |
+| **总计** | **84** | **18** | **0** | **66** |
 
 ---
 
@@ -657,6 +705,7 @@ void testCompareTo() {
 |------|---------|--------|
 | 2025-11-26 | 创建初始进度跟踪文档 | Claude |
 | 2025-11-26 | **✅ 完成阶段1全部12个类**<br/>- 所有基础数据结构已实现<br/>- 添加了详细的中文注释<br/>- 进度：14.3% (12/84类) | Claude |
+| 2025-11-27 | **✅ 完成阶段2全部6个核心接口**<br/>- RaftMessage (2方法，339行注释)<br/>- BatchReader<T> (4方法，572行注释)<br/>- NetworkChannel (3方法，528行注释)<br/>- EpochState (7方法，638行注释)<br/>- RaftClient<T> (17方法，1197行注释)<br/>- ReplicatedLog (26方法，1800+行注释)<br/>- 每个接口都有详细中文注释和使用示例<br/>- 进度：21.4% (18/84类) | Claude |
 
 ---
 
