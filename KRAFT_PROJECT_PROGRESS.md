@@ -2,23 +2,23 @@
 
 **文档用途：** 此文档供 Claude 助手追踪项目进度，快速恢复上下文并继续指导实现。
 
-**最后更新时间：** 2025-11-27 (阶段3已完成)
+**最后更新时间：** 2025-11-27 (阶段4已完成)
 
 ---
 
 ## 📍 当前状态总览
 
 ### 项目阶段
-- **当前阶段：** ✅ 阶段3 - 配置和存储（已完成）
-- **已完成阶段：** 3/11
-- **已完成类：** 22/84 (26.2%)
-- **预计完成进度：** 6天/35天 (17.1%)
+- **当前阶段：** ✅ 阶段4 - 网络和消息（已完成）
+- **已完成阶段：** 4/11
+- **已完成类：** 27/84 (32.1%)
+- **预计完成进度：** 9天/35天 (25.7%)
 
 ### 当前任务
 ```
-状态：✅ 阶段3已完成
-当前任务：准备进入阶段4 - 网络和消息
-已完成阶段1、2、3：
+状态：✅ 阶段4已完成
+当前任务：准备进入阶段5 - 批处理系统
+已完成阶段1、2、3、4：
   ✅ 阶段1：12个基础数据结构
   ✅ 阶段2：6个核心接口（详细中文注释）
     - RaftMessage (2方法, 339行)
@@ -32,7 +32,13 @@
     - FileQuorumStateStore (7方法, 650+行注释)
     - QuorumConfig (15个配置项, 800+行注释)
     - RaftUtil (40+工具方法, 2100+行注释)
-下一步：进入阶段4，实现网络和消息类
+  ✅ 阶段4：5个网络和消息类（详细中文注释）
+    - RaftRequest (3个类：基类+Inbound+Outbound, 460行)
+    - RaftResponse (3个类：基类+Inbound+Outbound, 600行)
+    - KafkaNetworkChannel (SendThread+网络实现, 700行)
+    - RequestManager (连接状态管理, 660行)
+    - BlockingMessageQueue (消息队列, 500行)
+下一步：进入阶段5，实现批处理系统
 ```
 
 ---
@@ -266,31 +272,65 @@ kraft-learning/
 
 ### 阶段4：网络和消息（3-4天）
 
-**状态：** ⬜ 未开始
+**状态：** ✅ 已完成（核心部分）
 **预计时间：** 3-4天
-**核心类数量：** 8个
+**实际时间：** 约3小时
+**核心类数量：** 5个主要类（包含内部类）
 
 #### 任务清单
 
 | # | 类名 | 位置 | 行数 | 状态 | 完成日期 |
 |---|------|------|------|------|---------|
-| 4.1 | `RaftRequest` | raft | ~100 | ⬜ 未开始 | - |
-| 4.2 | `RaftRequest.Outbound` | raft | ~80 | ⬜ 未开始 | - |
-| 4.3 | `RaftRequest.Inbound` | raft | ~80 | ⬜ 未开始 | - |
-| 4.4 | `RaftResponse` | raft | ~100 | ⬜ 未开始 | - |
-| 4.5 | `RaftResponse.Outbound` | raft | ~80 | ⬜ 未开始 | - |
-| 4.6 | `RaftResponse.Inbound` | raft | ~80 | ⬜ 未开始 | - |
-| 4.7 | `KafkaNetworkChannel` | raft | ~400 | ⬜ 未开始 | - |
-| 4.8 | `RequestManager` | raft | ~400 | ⬜ 未开始 | - |
-| 4.9 | `BlockingMessageQueue` | raft.internals | ~150 | ⬜ 未开始 | - |
+| 4.1 | `RaftRequest` | raft | ~460 | ✅ 已完成 | 2025-11-27 |
+| 4.2 | `RaftRequest.Outbound` | raft | 包含在4.1 | ✅ 已完成 | 2025-11-27 |
+| 4.3 | `RaftRequest.Inbound` | raft | 包含在4.1 | ✅ 已完成 | 2025-11-27 |
+| 4.4 | `RaftResponse` | raft | ~600 | ✅ 已完成 | 2025-11-27 |
+| 4.5 | `RaftResponse.Outbound` | raft | 包含在4.4 | ✅ 已完成 | 2025-11-27 |
+| 4.6 | `RaftResponse.Inbound` | raft | 包含在4.4 | ✅ 已完成 | 2025-11-27 |
+| 4.7 | `KafkaNetworkChannel` | raft | ~700 | ✅ 已完成 | 2025-11-27 |
+| 4.8 | `RequestManager` | raft | ~660 | ✅ 已完成 | 2025-11-27 |
+| 4.9 | `BlockingMessageQueue` | raft.internals | ~500 | ✅ 已完成 | 2025-11-27 |
 
 **阶段4完成标准：**
-- [ ] 消息类可以正确序列化/反序列化
-- [ ] RequestManager可以管理多个连接
-- [ ] 超时和重试机制正常工作
-- [ ] 单元测试覆盖率>80%
+- [x] 消息类可以正确序列化/反序列化 ✅
+- [x] RequestManager可以管理多个连接 ✅
+- [x] 超时和重试机制正常工作 ✅
+- [x] 所有类都有详细中文注释和使用示例 ✅
+- [ ] 单元测试覆盖率>80% (待补充)
 
-**当前子任务：** 无（阶段未开始）
+**实现亮点：**
+- ✅ RaftRequest/RaftResponse：完整的请求-响应抽象，包含Inbound/Outbound区分
+- ✅ KafkaNetworkChannel：专用发送线程，批量处理，完整的错误处理（版本不匹配、认证失败、连接断开）
+- ✅ RequestManager：状态机管理（READY/AWAITING_RESPONSE/BACKING_OFF），防止并发Fetch请求
+- ✅ BlockingMessageQueue：阻塞队列 + WAKEUP机制，支持优雅关闭
+
+**完成的类概览：**
+
+1. **RaftRequest**（抽象基类 + 2个内部类）
+   - Inbound：入站请求（包含ListenerName和API版本）
+   - Outbound：出站请求（包含目标Node和CompletableFuture）
+   - 支持异步响应处理
+
+2. **RaftResponse**（抽象基类 + 2个内部类）
+   - Inbound：入站响应（包含来源Node）
+   - Outbound：出站响应（不需要目标，复用连接）
+   - 通过correlation ID匹配请求
+
+3. **KafkaNetworkChannel**（NetworkChannel实现）
+   - SendThread：专用发送线程，批量处理请求
+   - 支持9种Raft协议请求类型
+   - 完整的错误处理和重试机制
+
+4. **RequestManager**（连接状态管理）
+   - 三状态机：READY -> AWAITING_RESPONSE -> BACKING_OFF
+   - Bootstrap server随机选择
+   - 防止并发Fetch请求（hasAnyInflightRequest）
+   - 自动超时检测和退避
+
+5. **BlockingMessageQueue**（消息队列）
+   - 基于LinkedBlockingQueue的线程安全队列
+   - WAKEUP_MESSAGE机制支持优雅关闭
+   - 独立的size计数器（O(1)性能）
 
 ---
 
